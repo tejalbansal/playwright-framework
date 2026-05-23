@@ -1,0 +1,172 @@
+name: Playwright E2E Tests
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  # ──────────────────────────────────────────────────────────────────────────
+  # Sharded UI + integration tests (4 shards × 2 workers each)
+  # ──────────────────────────────────────────────────────────────────────────
+  test-sharded:
+    name: 'UI Tests (shard ${{ matrix.shard }}/${{ matrix.total }})'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+        total: [4]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium firefox webkit
+
+      - name: Run sharded tests
+        run: |
+          npx playwright test \
+            --ignore-snapshots \
+            --shard=${{ matrix.shard }}/${{ matrix.total }} \
+            --workers=2 \
+            --reporter=blob
+        env:
+          CI: true
+          TEST_ENV: staging
+          BASE_URL: ${{ secrets.BASE_URL || 'https://www.saucedemo.com' }}
+          API_BASE_URL: ${{ secrets.API_BASE_URL || 'https://dummyjson.com' }}
+          STANDARD_USER: ${{ secrets.STANDARD_USER || 'standard_user' }}
+          TEST_PASSWORD: ${{ secrets.TEST_PASSWORD || 'secret_sauce' }}
+
+      - name: Upload blob report artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: blob-report-${{ matrix.shard }}
+          path: blob-report/
+          retention-days: 7
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # API tests (single job — no browser required)
+  # ──────────────────────────────────────────────────────────────────────────
+  test-api:
+    name: API Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright (API project only needs Node runner)
+        run: npx playwright install --with-deps chromium
+
+      - name: Run API tests
+        run: npx playwright test --project=api --workers=4
+        env:
+          CI: true
+          TEST_ENV: staging
+          API_BASE_URL: ${{ secrets.API_BASE_URL || 'https://dummyjson.com' }}
+
+      - name: Upload API test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-test-results
+          path: test-results/
+          retention-days: 7
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # Merge shard reports → single HTML report
+  # ──────────────────────────────────────────────────────────────────────────
+  merge-reports:
+    name: Merge & Publish Report
+    needs: [test-sharded, test-api]
+    if: always()
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Download all blob report artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: all-blob-reports
+          pattern: blob-report-*
+          merge-multiple: true
+
+      - name: Merge shard reports into HTML
+        run: |
+          npx playwright merge-reports \
+            --reporter=html,junit \
+            ./all-blob-reports
+
+      - name: Upload merged HTML report
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-html-report
+          path: playwright-report/
+          retention-days: 30
+
+      - name: Upload JUnit XML report
+        uses: actions/upload-artifact@v4
+        with:
+          name: junit-results
+          path: test-results/junit-results.xml
+          retention-days: 30
+
+      # ── Slack notification on failure ────────────────────────────────────
+      - name: Notify Slack on failure
+        if: failure()
+        run: |
+          curl -s -X POST "${{ secrets.SLACK_WEBHOOK_URL }}" \
+            -H 'Content-Type: application/json' \
+            -d '{
+              "text": ":x: *Playwright tests FAILED*",
+              "attachments": [
+                {
+                  "color": "#FF0000",
+                  "fields": [
+                    { "title": "Repository", "value": "${{ github.repository }}", "short": true },
+                    { "title": "Branch",     "value": "${{ github.ref_name }}",   "short": true },
+                    { "title": "Commit",     "value": "${{ github.sha }}",        "short": true },
+                    { "title": "Triggered by", "value": "${{ github.actor }}",    "short": true },
+                    { "title": "Run URL",    "value": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}", "short": false }
+                  ]
+                }
+              ]
+            }'

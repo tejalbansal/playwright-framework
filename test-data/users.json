@@ -1,0 +1,47 @@
+{
+  "validUsers": [
+    {
+      "username": "standard_user",
+      "password": "secret_sauce",
+      "expectedPage": "/inventory.html",
+      "description": "standard user"
+    },
+    {
+      "username": "problem_user",
+      "password": "secret_sauce",
+      "expectedPage": "/inventory.html",
+      "description": "problem user"
+    }
+  ],
+  "invalidUsers": [
+    {
+      "username": "",
+      "password": "",
+      "expectedError": "Username is required",
+      "description": "empty credentials"
+    },
+    {
+      "username": "standard_user",
+      "password": "",
+      "expectedError": "Password is required",
+      "description": "missing password"
+    },
+    {
+      "username": "",
+      "password": "secret_sauce",
+      "expectedError": "Username is required",
+      "description": "missing username"
+    },
+    {
+      "username": "invalid_user",
+      "password": "wrong_pass",
+      "expectedError": "Username and password do not match",
+      "description": "wrong credentials"
+    }
+  ],
+  "lockedUser": {
+    "username": "locked_out_user",
+    "password": "secret_sauce",
+    "expectedError": "Sorry, this user has been locked out"
+  }
+}

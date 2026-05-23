@@ -1,0 +1,37 @@
+{
+  "name": "testmu-sdet2-tbansal",
+  "version": "1.0.0",
+  "description": "Playwright E2E test framework for TestMu AI SDET-2 assessment",
+  "scripts": {
+    "test": "playwright test",
+    "test:ui": "playwright test tests/ui",
+    "test:api": "playwright test tests/api",
+    "test:integration": "playwright test tests/integration",
+    "test:headed": "playwright test --headed",
+    "test:chromium": "playwright test --project=chromium",
+    "test:firefox": "playwright test --project=firefox",
+    "test:webkit": "playwright test --project=webkit",
+    "test:smoke": "playwright test --grep @smoke",
+    "test:regression": "playwright test --grep @regression",
+    "test:parallel": "playwright test --workers=4",
+    "test:shard1": "playwright test --shard=1/4",
+    "test:shard2": "playwright test --shard=2/4",
+    "test:shard3": "playwright test --shard=3/4",
+    "test:shard4": "playwright test --shard=4/4",
+    "report": "playwright show-report",
+    "lint": "eslint . --ext .ts",
+    "lint:fix": "eslint . --ext .ts --fix",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.44.0",
+    "@types/node": "^20.12.0",
+    "typescript": "^5.4.5",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "eslint": "^8.57.0",
+    "dotenv": "^16.4.5",
+    "ajv": "^8.12.0",
+    "ajv-formats": "^3.0.1"
+  }
+}

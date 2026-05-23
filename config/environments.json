@@ -1,0 +1,23 @@
+{
+  "environments": {
+    "local": {
+      "baseURL": "http://localhost:3000",
+      "apiBaseURL": "https://dummyjson.com",
+      "timeout": 30000,
+      "retries": 0
+    },
+    "staging": {
+      "baseURL": "https://www.saucedemo.com",
+      "apiBaseURL": "https://dummyjson.com",
+      "timeout": 60000,
+      "retries": 1
+    },
+    "production": {
+      "baseURL": "https://www.saucedemo.com",
+      "apiBaseURL": "https://dummyjson.com",
+      "timeout": 60000,
+      "retries": 2
+    }
+  },
+  "defaultEnvironment": "staging"
+}

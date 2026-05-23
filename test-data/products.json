@@ -1,0 +1,16 @@
+{
+  "products": [
+    { "name": "Sauce Labs Backpack",         "description": "carry.allTheThings()" },
+    { "name": "Sauce Labs Bike Light",        "description": "A red light" },
+    { "name": "Sauce Labs Bolt T-Shirt",      "description": "Get your testing superhero on" },
+    { "name": "Sauce Labs Fleece Jacket",     "description": "It's not every day" },
+    { "name": "Sauce Labs Onesie",            "description": "Rib snap infant onesie" },
+    { "name": "Test.allTheThings() T-Shirt",  "description": "Super shirt" }
+  ],
+  "sortOptions": [
+    { "value": "az",   "label": "Name (A to Z)",     "type": "alpha-asc"  },
+    { "value": "za",   "label": "Name (Z to A)",     "type": "alpha-desc" },
+    { "value": "lohi", "label": "Price (low to high)","type": "price-asc"  },
+    { "value": "hilo", "label": "Price (high to low)","type": "price-desc" }
+  ]
+}

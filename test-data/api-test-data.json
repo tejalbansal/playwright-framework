@@ -1,0 +1,24 @@
+{
+  "createUser": [
+    { "firstName": "Alice", "lastName": "Tester",   "description": "standard create" },
+    { "firstName": "Bob",   "lastName": "Builder",  "description": "minimal fields"  },
+    { "firstName": "Carol", "lastName": "Dev",      "description": "short names"     }
+  ],
+  "updateUser": {
+    "id": 2,
+    "firstName": "UpdatedFirst",
+    "lastName":  "UpdatedLast"
+  },
+  "validLogin": {
+    "username": "emilys",
+    "password": "emilyspass"
+  },
+  "invalidLogin": {
+    "username": "notauser",
+    "password": "wrongpassword",
+    "expectedError": "Invalid credentials"
+  },
+  "nonExistentUserId": 9999,
+  "existingUserIds": [1, 2, 3],
+  "responseTimeLimitMs": 2000
+}
